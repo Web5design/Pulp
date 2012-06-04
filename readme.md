@@ -76,7 +76,7 @@ Once the app is generated, you'll need to CD into the folder and run Bundler to 
 
 If you move your app to another location, be sure to edit the path in `db_connection_string` inside of yoru `app.yrml` file.
 
-If you'd like to simply use the front end boilerplate, it's packaged separately inside of the `frontend.zip` file.
+If you'd like to simply use the front end boilerplate, it's packaged separately inside of the `frontend.zip` file. It's important that you leave the original `frontend.zip` file in the same directory as the `pulp.sh` file - Pulp extracts the front end boilerplate from this zip to place inside of your application.
 
 ###Credits
 
