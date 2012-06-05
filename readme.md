@@ -42,9 +42,9 @@ You get a basic MVC structured application, a couple of config files, some nice 
           font/
             fontawesome-webfont.eot
             fontawesome-webfont.svg
-            fontawesome-webfont.svgz
             fontawesome-webfont.ttf
             fontawesome-webfont.woff
+            index.html
           index.html
           less/
             app.less
