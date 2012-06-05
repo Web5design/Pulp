@@ -38,11 +38,11 @@ if @@config["db_run_upgrades"] == true
 end
 
 not_found do
-    erb :not_found
+    erb :not_found, :layout => false
 end
 
 error do
-    erb :error
+    erb :error, :layout => false
 end
 
 get '/' do
