@@ -101,10 +101,10 @@ cat <<- _EOF_
 <head>
   <meta charset="utf-8">
   <title>$APP</title>
-  <link rel="icon" type="image/png" href="/img/icon-16.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="57x57" href=".img/icon-57.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/img/icon-72.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/img/icon-114.png" />
+  <link rel="icon" type="image/png" href="/img/icon-16.png">
+  <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/img/icon-57.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/img/icon-72.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/img/icon-114.png">
   <link rel="stylesheet" href="/styles/css/app.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="text/javascript" src="/js/jquery.min.js"></script>
