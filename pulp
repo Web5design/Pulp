@@ -18,11 +18,11 @@ configure do
   @@config = JSON.parse(File.read('app-config.json')) || {}
 end
 
-require "./lang/" + @@config[:default_language] + ".rb"
+require "./lang/" + @@config["default_language"] + ".rb"
 
 Dir["./helpers/*.rb"].each {|file| require file}
 
-DataMapper.setup(:default, ENV['DATABASE_URL'] || @@config[:db_connection_string])
+DataMapper.setup(:default, ENV['DATABASE_URL'] || @@config["db_connection_string"])
 DataMapper::Property::String.length(255)
 
 Dir["./models/*.rb"].each {|file| require file}
