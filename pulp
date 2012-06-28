@@ -30,23 +30,23 @@ Dir["./models/*.rb"].each {|file| require file}
 DataMapper.finalize
 
 if @@config["db_run_migrations"] == true
-    DataMapper.auto_migrate!
+  DataMapper.auto_migrate!
 end
 
 if @@config["db_run_upgrades"] == true
-    DataMapper.auto_upgrade!
+  DataMapper.auto_upgrade!
 end
 
 not_found do
-    erb :not_found, :layout => false
+  erb :not_found, :layout => false
 end
 
 error do
-    erb :error, :layout => false
+  erb :error, :layout => false
 end
 
 get '/' do
-    erb :index
+  erb :index
 end
 
 Dir["./controllers/*.rb"].each {|file| require file}
@@ -56,10 +56,10 @@ _EOF_
 function make_lang_file {
 cat <<- _EOF_
 @@lang = {
-    :invalid_login => "Invalid login or password.",
-    :login_required => "You must be logged in to perform this action.",
-    :not_found => "Resource not found.",
-    :unknown_error => "An unknown error has occurred."
+  :invalid_login => "Invalid login or password.",
+  :login_required => "You must be logged in to perform this action.",
+  :not_found => "Resource not found.",
+  :unknown_error => "An unknown error has occurred."
 }
 _EOF_
 }
@@ -139,12 +139,12 @@ function make_error_erb {
 cat <<- _EOF_
 <!DOCTYPE html>
 <head>
-    <meta charset="utf-8">
-    <title>Internal Server Error</title>
+  <meta charset="utf-8">
+  <title>Internal Server Error</title>
 </head>
 <body>
-    <h1>500 - Internal Server Error</h1>
-    <p>The server encountered an error while processing your request.</p>
+  <h1>500 - Internal Server Error</h1>
+  <p>The server encountered an error while processing your request.</p>
 </body>
 </html>
 _EOF_
@@ -154,12 +154,12 @@ function make_not_found_erb {
 cat <<- _EOF_
 <!DOCTYPE html>
 <head>
-    <meta charset="utf-8">
-    <title>Not Found</title>
+  <meta charset="utf-8">
+  <title>Not Found</title>
 </head>
 <body>
-    <h1>404 - Not Found</h1>
-    <p>The page or resource you requested could not be found.</p>
+  <h1>404 - Not Found</h1>
+  <p>The page or resource you requested could not be found.</p>
 </body>
 </html>
 _EOF_
@@ -239,7 +239,7 @@ then
 
         git init
         git add .
-        git commit -a -m "initial import"
+        git commit -a -m "initial import - courtesy of Pulp"
 
         echo "-----------------------------------------------------"
         echo "Project '$APP' created successfully."
