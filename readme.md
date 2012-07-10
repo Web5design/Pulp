@@ -8,7 +8,7 @@ Pulp is a little shell script and accompanying package of assets to generate a b
 Using Pulp is really simple.
 
     cd pulp
-    ./pulp.sh MyApp
+    ./pulp MyApp
 
 Pulp has now generated your base application inside of the folder `MyApp`, which you can now move anywhere.
 
