@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./sinatra_setup.rb my_app
+# Usage: ./pulp my_app
 #
 # kelli@kellishaver.com
 
@@ -11,31 +11,40 @@ cat <<- _EOF_
 require 'rubygems'
 require 'sinatra'
 require 'bcrypt'
-require 'data_mapper'
+require 'sqlite3'
+require 'mysql'
+require 'sinatra/activerecord'
 require 'json'
+require 'pony'
 
-configure do
-  @@config = JSON.parse(File.read('app-config.json')) || {}
+configure :development do
+  @@db = JSON.parse(File.read('./db/config.json'))["development"]
+  @@config = JSON.parse(File.read('./app-config.json'))["development"]
+end
+configure :test do
+  @@db = JSON.parse(File.read('./db/config.json'))["test"]
+  @@config = JSON.parse(File.read('./app-config.json'))["test"]
+end
+configure :production do
+  @@db = JSON.parse(File.read('./db/config.json'))["production"]
+  @@config = JSON.parse(File.read('./app-config.json'))["test"]
 end
 
 require "./lang/" + @@config["default_language"] + ".rb"
 
 Dir["./helpers/*.rb"].each {|file| require file}
 
-DataMapper.setup(:default, ENV['DATABASE_URL'] || @@config["db_connection_string"])
-DataMapper::Property::String.length(255)
+case @@db["adapter"]
+  when "mysql", "postgresql"
+    set :database, @@db["adapter"] + '://' + @@db["username"] + ':' + @@db["password"] + '@' + @@db["host"] + ':' + @@db["port"] + '/' + @@db["database"]
+  when "sqlite", "sqlite3"
+    set :database, 'sqlite://' + @@db["host"] + '/' + @@db["database"]
+end
+
+ActiveRecord::Base.partial_updates = true
+ActiveRecord::Base.include_root_in_json = false
 
 Dir["./models/*.rb"].each {|file| require file}
-
-DataMapper.finalize
-
-if @@config["db_run_migrations"] == true
-  DataMapper.auto_migrate!
-end
-
-if @@config["db_run_upgrades"] == true
-  DataMapper.auto_upgrade!
-end
 
 not_found do
   erb :not_found, :layout => false
@@ -69,23 +78,84 @@ cat <<- _EOF_
 source :gemcutter
 gem 'sinatra'
 gem 'thin'
-gem 'data_mapper'
-gem 'dm-sqlite-adapter'
 gem 'bcrypt-ruby'
 gem 'json'
+gem 'activerecord'
+gem 'sinatra-activerecord'
+gem 'sqlite3'
+gem 'mysql'
+gem 'pony'
 _EOF_
 }
 
-function make_config_file {
+function make_db_config_file {
 cat <<- _EOF_
 {
-  "default_language":"en-us",
-  "db_connection_string":"sqlite3://$(pwd)/test.db",
-  "db_run_migrations":true,
-  "db_run_upgrades":true
+  "development":{
+    "adapter":"sqlite",
+    "host":"/db",
+    "port":"",
+    "database":"development.db",
+    "username":"",
+    "password":""
+  },
+  "test":{
+    "adapter":"sqlite",
+    "host":"/db",
+    "port":"",
+    "database":"test.db",
+    "username":"",
+    "password":""
+  },
+  "production":{
+    "adapter":"sqlite",
+    "host":"/db",
+    "port":"",
+    "database":"production.db",
+    "username":"",
+    "password":""
+  }
 }
 _EOF_
 }
+
+function make_app_config_file {
+cat <<- _EOF_
+{
+  "development":{
+    "default_language":"en-us",
+    "mail":{
+      "server":"",
+      "port":25,
+      "user":"",
+      "password":"",
+      "domain":""
+    }
+  },
+  "test":{
+    "default_language":"en-us",
+    "mail":{
+      "server":"",
+      "port":25,
+      "user":"",
+      "password":"",
+      "domain":""
+    }
+  },
+  "production":{
+    "default_language":"en-us",
+    "mail":{
+      "server":"",
+      "port":25,
+      "user":"",
+      "password":"",
+      "domain":""
+    }
+  }
+}
+_EOF_
+}
+
 
 function make_rackup_file {
 cat <<- _EOF_
@@ -199,6 +269,164 @@ end
 _EOF_
 }
 
+function make_rakefile {
+cat <<- _EOF_
+require 'sinatra/activerecord/rake'
+require './$APP'
+
+desc "Report code statistics"
+task :stats do
+  require './vendor/code_statistics'
+  STATS_DIRECTORIES = [
+    %w(Controllers        controllers),
+    %w(Helpers            helpers),
+    %w(Models             models),
+    %w(Tests              tests),
+    %w(Migrations         db/migration),
+  ].collect { |name, dir| [ name, "./#{dir}" ] }.select { |name, dir| File.directory?(dir) }
+
+  CodeStatistics.new(*STATS_DIRECTORIES).to_s
+end
+
+namespace :db do
+  desc "Truncate all existing data"
+  task :reset do
+   begin
+    config = @@db
+    case config["adapter"]
+      when "mysql", "postgresql"
+        ActiveRecord::Base.connection.tables.each do |table|
+          unless table=='schema_migrations'
+            ActiveRecord::Base.connection.execute("TRUNCATE #{table}")
+          end
+        end
+      when "sqlite", "sqlite3"
+        ActiveRecord::Base.connection.tables.each do |table|
+          unless table=='schema_migrations'
+            ActiveRecord::Base.connection.execute("DELETE FROM #{table}")
+            ActiveRecord::Base.connection.execute("DELETE FROM sqlite_sequence where name='#{table}'")
+          end
+        end
+       ActiveRecord::Base.connection.execute("VACUUM")
+     end
+    end
+  end
+end
+_EOF_
+}
+
+function make_code_statistics {
+cat <<- _EOF_
+class CodeStatistics
+
+  def initialize(*pairs)
+    @pairs      = pairs
+    @statistics = calculate_statistics
+    @total      = calculate_total if pairs.length > 1
+  end
+
+  def to_s
+    print_header
+    @pairs.each { |pair| print_line(pair.first, @statistics[pair.first]) }
+    print_splitter
+
+    if @total
+      print_line("Total", @total)
+      print_splitter
+    end
+
+    print_code_test_stats
+  end
+
+  private
+
+    def calculate_statistics
+      Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
+    end
+
+    def calculate_directory_statistics(directory, pattern = /.*\.(rb|haml|sass)$/)
+      stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0, "comments" => 0 }
+
+      Dir.foreach(directory) do |file_name|
+        if File.stat(directory + "/" + file_name).directory? and (/^\./ !~ file_name)
+          newstats = calculate_directory_statistics(directory + "/" + file_name, pattern)
+          stats.each { |k, v| stats[k] += newstats[k] }
+        end
+
+        next unless file_name =~ pattern
+
+        f = File.open(directory + "/" + file_name)
+
+        while line = f.gets
+          stats["lines"]      += 1
+          stats["classes"]    += 1 if line =~ /class [A-Z]/
+          stats["methods"]    += 1 if line =~ /def [a-z]/
+          stats["comments"]   += 1 if line =~ /\s*# /
+          stats["codelines"]  += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
+        end
+      end
+
+      stats
+    end
+
+    def calculate_total
+      total = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0, "comments" => 0 }
+      @statistics.each_value { |pair| pair.each { |k, v| total[k] += v } }
+      total
+    end
+
+    def calculate_code
+      code_loc = 0
+      @statistics.each { |k, v| code_loc += v['codelines'] unless k=="Tests" }
+      code_loc
+    end
+
+    def calculate_tests
+      test_loc = 0
+      @statistics.each { |k, v| test_loc += v['codelines'] if k=="Tests" }
+      test_loc
+    end
+
+    def print_header
+      print_splitter
+      puts "| Name                 | Lines |   LOC | Comments | Classes | Methods | M/C | LOC/M |"
+      print_splitter
+    end
+
+    def print_splitter
+      puts "+----------------------+-------+-------+----------+---------+---------+-----+-------+"
+    end
+
+    def print_line(name, statistics)
+      m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
+      loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
+
+      start = if name=="Tests"
+        "| #{name.ljust(20)} "
+      else
+        "| #{name.ljust(20)} "
+      end
+
+      puts start +
+           "| #{statistics["lines"].to_s.rjust(5)} " +
+           "| #{statistics["codelines"].to_s.rjust(5)} " +
+           "| #{statistics["comments"].to_s.rjust(8)} " +
+           "| #{statistics["classes"].to_s.rjust(7)} " +
+           "| #{statistics["methods"].to_s.rjust(7)} " +
+           "| #{m_over_c.to_s.rjust(3)} " +
+           "| #{loc_over_m.to_s.rjust(5)} |"
+    end
+
+    def print_code_test_stats
+      code  = calculate_code
+      tests = calculate_tests
+
+      puts "  Code LOC: #{code}     Test LOC: #{tests}     Code to Test Ratio: 1:#{sprintf("%.1f", tests.to_f/code)}"
+      puts ""
+    end
+end
+_EOF_
+}
 
 if [ ! -d $APP ]
 then
@@ -212,9 +440,12 @@ then
         /bin/mkdir 'views'
         /bin/mkdir -p 'public'
         /bin/mkdir 'controllers'
+        /bin/mkdir 'db'
         /bin/mkdir 'models'
         /bin/mkdir 'lang'
         /bin/mkdir 'helpers'
+        /bin/mkdir 'tests'
+        /bin/mkdir 'vendor'
 
         cp ../frontend.zip ./public/frontend.zip
         cd public
@@ -225,15 +456,18 @@ then
         cd ..
 
         make_app_file >> $APP'.rb'
-        make_config_file >> 'app-config.json'
+        make_app_config_file >> 'app-config.json'
+        make_db_config_file >> 'db/config.json'
         make_gem_file >> 'Gemfile'
         make_rackup_file >> 'config.ru'
+        make_rakefile >> 'Rakefile'
         make_lang_file >> 'lang/en-us.rb'
         make_layout_file >> 'views/layout.erb'
         make_index_erb >> 'views/index.erb'
         make_error_erb >> 'views/error.erb'
         make_not_found_erb >> 'views/not_found.erb'
-        make_test >> $APP'-test.rb'
+        make_test >> 'tests/app.rb'
+        make_code_statistics >> 'vendor/code_statistics.rb'
         make_readme >> 'readme.mdown'
         make_gitignore >> '.gitignore'
 

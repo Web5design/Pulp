@@ -18,10 +18,13 @@ You get a basic MVC structured application, a couple of config files, some nice 
 
     MyApp/
       Gemfile
-      MyApp-test.rb
       MyApp.rb
-      app.yml
+      Rakefile
+      app-config.json
       config.ru
+      controllers/
+      db/
+        config.json
       helpers/
       lang/
         en-us.rb
@@ -53,8 +56,11 @@ You get a basic MVC structured application, a couple of config files, some nice 
             index.html
             media_queries.less
             prefixer.less
-      readme.mdown
-      routes/
+      readme.md
+      tests/
+        app.rb
+      vendor/
+        code_statistics.rb
       views/
         error.erb
         index.erb
@@ -65,16 +71,27 @@ Pulp includes the following gems by default:
 
   * sinatra
   * thin
-  * data_mapper
-  * dm-sqlite-adapter
+  * activerecord
+  * sinatra-activerecord
   * bcrypt-ruby
   * json
+  * mysql
+  * sqlite3
+  * pony
 
-Your application's config file is `app.yml` and a rackup config file is also included.
+Your application's config file is `app-config.json` and the database configuration file can be found at `db/config.json`. A rackup config file is also included.
 
 Once the app is generated, you'll need to CD into the folder and run Bundler to install the gems.
 
-If you move your app to another location, be sure to edit the path in `db_connection_string` inside of yoru `app.yrml` file.
+    bundle install
+
+After you've configured your database, you can create migrations using the `db:create_migration` rake task. You must pass a `NAME` argument, like so:
+
+    rake db:create_migration NAME=my_sample_migration
+
+Once you're done editing your migration files, rune `rake db:migrate` just like you would in Rails. 
+
+To see a list of all available Rake tasks, run `rake -T`.
 
 If you'd like to simply use the front end boilerplate, it's packaged separately inside of the `frontend.zip` file. It's important that you leave the original `frontend.zip` file in the same directory as the `pulp.sh` file - Pulp extracts the front end boilerplate from this zip to place inside of your application.
 
@@ -83,6 +100,8 @@ If you'd like to simply use the front end boilerplate, it's packaged separately 
 Pulp includes [Font Awesome](http://fortawesome.github.com/Font-Awesome) for awesome font icons.
 
 Pulp also includes a copy of [jQuery](http://jquery.com)
+
+The `stats` rake task uses a slightly modified version of the Rails code_statistics.rb file.
 
 ###License
 
