@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Pulp by kellishaver</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Pulp</h1>
+          <h2>Generator script and packaged assets for creating a base Sinatra application and front-end boilerplate</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/kellishaver/Pulp/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/kellishaver/Pulp/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/kellishaver/Pulp" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <p><img src="http://i.imgur.com/lBmSP.png" alt="Pulp"></p>
+
+<p>Pulp is a little shell script and accompanying package of assets to generate a base Sinatra application and front-end boilerplate.</p>
+
+<h3>Usage</h3>
+
+<p>Using Pulp is really simple.</p>
+
+<pre><code>cd pulp
+./pulp MyApp
+</code></pre>
+
+<p>Pulp has now generated your base application inside of the folder <code>MyApp</code>, which you can now move anywhere.</p>
+
+<h3>What does a Pulp application look like?</h3>
+
+<p>You get a basic MVC structured application, a couple of config files, some nice defaults, and a simple HTML/CSS boilerplate. A fresly-squeezed Pulp app looks like this:</p>
+
+<pre><code>MyApp/
+  Gemfile
+  MyApp.rb
+  Rakefile
+  app-config.json
+  config.ru
+  controllers/
+  db/
+    config.json
+  helpers/
+  lang/
+    en-us.rb
+  models/
+  public/
+    img/
+      icon-114.png
+      icon-16.png
+      icon-57.png
+      icon-72.png
+      index.html
+    js/
+      app.js
+      index.html
+      jquery.min.js
+    styles/
+      css/
+      font/
+        fontawesome-webfont.eot
+        fontawesome-webfont.svg
+        fontawesome-webfont.ttf
+        fontawesome-webfont.woff
+        index.html
+      index.html
+      less/
+        app.less
+        base.less
+        font_awesome.less
+        index.html
+        media_queries.less
+        prefixer.less
+  readme.md
+  tests/
+    app.rb
+  vendor/
+    code_statistics.rb
+  views/
+    error.erb
+    index.erb
+    layout.erb
+    not_found.erb
+</code></pre>
+
+<p>Pulp includes the following gems by default:</p>
+
+<ul>
+<li>sinatra</li>
+<li>thin</li>
+<li>activerecord</li>
+<li>sinatra-activerecord</li>
+<li>bcrypt-ruby</li>
+<li>json</li>
+<li>mysql</li>
+<li>sqlite3</li>
+<li>pony</li>
+</ul><p>Your application's config file is <code>app-config.json</code> and the database configuration file can be found at <code>db/config.json</code>. A rackup config file is also included.</p>
+
+<p>Once the app is generated, you'll need to CD into the folder and run Bundler to install the gems.</p>
+
+<pre><code>bundle install
+</code></pre>
+
+<p>After you've configured your database, you can create migrations using the <code>db:create_migration</code> rake task. You must pass a <code>NAME</code> argument, like so:</p>
+
+<pre><code>rake db:create_migration NAME=my_sample_migration
+</code></pre>
+
+<p>Once you're done editing your migration files, rune <code>rake db:migrate</code> just like you would in Rails. </p>
+
+<p>To see a list of all available Rake tasks, run <code>rake -T</code>.</p>
+
+<p>If you'd like to simply use the front end boilerplate, it's packaged separately inside of the <code>frontend.zip</code> file. It's important that you leave the original <code>frontend.zip</code> file in the same directory as the <code>pulp.sh</code> file - Pulp extracts the front end boilerplate from this zip to place inside of your application.</p>
+
+<h3>Credits</h3>
+
+<p>Pulp includes <a href="http://fortawesome.github.com/Font-Awesome">Font Awesome</a> for awesome font icons.</p>
+
+<p>Pulp also includes a copy of <a href="http://jquery.com">jQuery</a></p>
+
+<p>The <code>stats</code> rake task uses a slightly modified version of the Rails code_statistics.rb file.</p>
+
+<h3>License</h3>
+
+<p>Pulp is licensed under the <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a> license.</p>
+        </section>
+
+        <footer>
+          Pulp is maintained by <a href="https://github.com/kellishaver">kellishaver</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
