@@ -26,6 +26,7 @@ You get a basic MVC structured application, a couple of config files, some nice 
       db/
         config.json
       helpers/
+        html.rb
       lang/
         en-us.rb
       models/
@@ -38,6 +39,7 @@ You get a basic MVC structured application, a couple of config files, some nice 
           index.html
         js/
           app.js
+          gridpak.js
           index.html
           jquery.min.js
         styles/
@@ -53,6 +55,7 @@ You get a basic MVC structured application, a couple of config files, some nice 
             app.less
             base.less
             font_awesome.less
+            gridpak.js
             index.html
             media_queries.less
             prefixer.less
@@ -73,6 +76,7 @@ Pulp includes the following gems by default:
   * thin
   * activerecord
   * sinatra-activerecord
+  * sinatra-formhelpers
   * bcrypt-ruby
   * json
   * mysql
@@ -89,7 +93,7 @@ After you've configured your database, you can create migrations using the `db:c
 
     rake db:create_migration NAME=my_sample_migration
 
-Once you're done editing your migration files, rune `rake db:migrate` just like you would in Rails. 
+Once you're done editing your migration files, rune `rake db:migrate` just like you would in Rails.
 
 To see a list of all available Rake tasks, run `rake -T`.
 

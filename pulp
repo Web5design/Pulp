@@ -82,6 +82,7 @@ gem 'bcrypt-ruby'
 gem 'json'
 gem 'activerecord'
 gem 'sinatra-activerecord'
+gem 'sinatra-formhelpers'
 gem 'sqlite3'
 gem 'mysql'
 gem 'pony'
@@ -155,7 +156,6 @@ cat <<- _EOF_
 }
 _EOF_
 }
-
 
 function make_rackup_file {
 cat <<- _EOF_
@@ -234,6 +234,36 @@ cat <<- _EOF_
 </html>
 _EOF_
 }
+
+
+function make_html_helper_erb {
+cat <<- _EOF_
+require 'sinatra/form_helpers'
+
+# and add a couple more that aren't available by default....
+helpers do
+  def stylesheet(name, media='screen')
+    if name.index('http').nil?
+      name = "/styles/css/" + name + ".css"
+    end
+    "<link rel=\"stylesheet\" href=\"#{name}\" media=\"#{media}\">";
+  end
+
+  def javascript(name, options=nil)
+    if name.index('http').nil?
+      name = "/js/" + name + ".js"
+    end
+    if options.nil?
+      attrs = ''
+    else
+      attrs = options.collect{|k,v| "#{k}=\"#{v}\" "}.join
+    end
+    "<script type=\"text/javascript\" src=\"#{name}\" #{attrs}></script>"
+  end
+end
+_EOF_
+}
+
 
 function make_gitignore {
 cat <<- _EOF_
@@ -466,6 +496,7 @@ then
         make_index_erb >> 'views/index.erb'
         make_error_erb >> 'views/error.erb'
         make_not_found_erb >> 'views/not_found.erb'
+        make_html_helpers_erb >> 'helpers/html.rb'
         make_test >> 'tests/app.rb'
         make_code_statistics >> 'vendor/code_statistics.rb'
         make_readme >> 'readme.mdown'
